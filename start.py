@@ -29,43 +29,35 @@ def get_ltm():
             from memory import LongTermMemory; _ltm=LongTermMemory()
     return _ltm
 
-TP=["qwen3","deepseek-r1","qwq","gpt-oss","o1","o3"]
-# "eng" tag: which engines support the param. o=ollama, l=llamacpp, ol=both
+TP=["qwen3","deepseek-r1","qwq","gpt-oss","o1","o3","omnibrain"]
+# OpenAI-compatible parameters. Sent at top level of /v1/chat/completions.
+# Most servers (text-generation-webui, llama-server, vLLM, KoboldCpp) accept
+# these extras alongside the OpenAI core (temperature, top_p, max_tokens, ...).
 PD={
- "temperature":{"type":"float","default":0.8,"min":0.0,"max":2.0,"step":0.05,"cat":"sampling","desc":"Randomness","eng":"ol"},
- "top_k":{"type":"int","default":40,"min":0,"max":200,"step":1,"cat":"sampling","desc":"Token pool","eng":"ol"},
- "top_p":{"type":"float","default":0.9,"min":0.0,"max":1.0,"step":0.05,"cat":"sampling","desc":"Nucleus","eng":"ol"},
- "min_p":{"type":"float","default":0.0,"min":0.0,"max":1.0,"step":0.01,"cat":"sampling","desc":"Min prob","eng":"ol"},
- "typical_p":{"type":"float","default":1.0,"min":0.0,"max":1.0,"step":0.05,"cat":"sampling","desc":"Typical","eng":"o"},
- "tfs_z":{"type":"float","default":1.0,"min":0.0,"max":2.0,"step":0.1,"cat":"sampling","desc":"Tail-free","eng":"o"},
- "mirostat":{"type":"int","default":0,"min":0,"max":2,"step":1,"cat":"mirostat","desc":"Mode","eng":"o"},
- "mirostat_tau":{"type":"float","default":5.0,"min":0.0,"max":10.0,"step":0.1,"cat":"mirostat","desc":"Tau","eng":"o"},
- "mirostat_eta":{"type":"float","default":0.1,"min":0.0,"max":1.0,"step":0.01,"cat":"mirostat","desc":"Eta","eng":"o"},
- "repeat_penalty":{"type":"float","default":1.0,"min":0.0,"max":2.0,"step":0.05,"cat":"penalties","desc":"Repeat","eng":"ol"},
- "repeat_last_n":{"type":"int","default":64,"min":-1,"max":4096,"step":1,"cat":"penalties","desc":"Lookback","eng":"o"},
- "presence_penalty":{"type":"float","default":0.0,"min":-2.0,"max":2.0,"step":0.1,"cat":"penalties","desc":"Presence","eng":"ol"},
- "frequency_penalty":{"type":"float","default":0.0,"min":-2.0,"max":2.0,"step":0.1,"cat":"penalties","desc":"Frequency","eng":"ol"},
- "penalize_newline":{"type":"bool","default":True,"cat":"penalties","desc":"Penalize NL","eng":"o"},
- "num_predict":{"type":"int","default":-1,"min":-2,"max":32768,"step":1,"cat":"generation","desc":"Max tokens (Ollama)","eng":"o"},
- "max_tokens":{"type":"int","default":2048,"min":1,"max":32768,"step":1,"cat":"generation","desc":"Max tokens (llama.cpp)","eng":"l"},
- "num_ctx":{"type":"int","default":2048,"min":256,"max":131072,"step":256,"cat":"generation","desc":"Context window","eng":"o"},
- "num_keep":{"type":"int","default":-1,"min":-1,"max":65536,"step":1,"cat":"generation","desc":"Keep","eng":"o"},
- "seed":{"type":"int","default":0,"min":0,"max":999999999,"step":1,"cat":"generation","desc":"Seed","eng":"ol"},
- "stop":{"type":"list","default":[],"cat":"generation","desc":"Stop seqs","eng":"ol"},
- "num_batch":{"type":"int","default":512,"min":1,"max":4096,"step":1,"cat":"runtime","desc":"Batch","eng":"o"},
- "num_gpu":{"type":"int","default":-1,"min":-1,"max":999,"step":1,"cat":"runtime","desc":"GPU layers","eng":"o"},
- "main_gpu":{"type":"int","default":0,"min":0,"max":16,"step":1,"cat":"runtime","desc":"Main GPU","eng":"o"},
- "num_thread":{"type":"int","default":0,"min":0,"max":256,"step":1,"cat":"runtime","desc":"Threads","eng":"o"},
- "numa":{"type":"bool","default":False,"cat":"runtime","desc":"NUMA","eng":"o"},
- "low_vram":{"type":"bool","default":False,"cat":"runtime","desc":"Low VRAM","eng":"o"},
- "use_mmap":{"type":"bool","default":True,"cat":"runtime","desc":"Mmap","eng":"o"},
- "use_mlock":{"type":"bool","default":False,"cat":"runtime","desc":"Mlock","eng":"o"},
+ "temperature":{"type":"float","default":0.8,"min":0.0,"max":2.0,"step":0.05,"cat":"sampling","desc":"Randomness"},
+ "top_k":{"type":"int","default":40,"min":0,"max":200,"step":1,"cat":"sampling","desc":"Token pool"},
+ "top_p":{"type":"float","default":0.9,"min":0.0,"max":1.0,"step":0.05,"cat":"sampling","desc":"Nucleus"},
+ "min_p":{"type":"float","default":0.0,"min":0.0,"max":1.0,"step":0.01,"cat":"sampling","desc":"Min prob"},
+ "typical_p":{"type":"float","default":1.0,"min":0.0,"max":1.0,"step":0.05,"cat":"sampling","desc":"Typical"},
+ "tfs":{"type":"float","default":1.0,"min":0.0,"max":2.0,"step":0.1,"cat":"sampling","desc":"Tail-free"},
+ "mirostat_mode":{"type":"int","default":0,"min":0,"max":2,"step":1,"cat":"mirostat","desc":"Mode"},
+ "mirostat_tau":{"type":"float","default":5.0,"min":0.0,"max":10.0,"step":0.1,"cat":"mirostat","desc":"Tau"},
+ "mirostat_eta":{"type":"float","default":0.1,"min":0.0,"max":1.0,"step":0.01,"cat":"mirostat","desc":"Eta"},
+ "repetition_penalty":{"type":"float","default":1.0,"min":0.0,"max":2.0,"step":0.05,"cat":"penalties","desc":"Repeat"},
+ "repetition_penalty_range":{"type":"int","default":1024,"min":0,"max":131072,"step":64,"cat":"penalties","desc":"Repeat range"},
+ "presence_penalty":{"type":"float","default":0.0,"min":-2.0,"max":2.0,"step":0.1,"cat":"penalties","desc":"Presence"},
+ "frequency_penalty":{"type":"float","default":0.0,"min":-2.0,"max":2.0,"step":0.1,"cat":"penalties","desc":"Frequency"},
+ "max_tokens":{"type":"int","default":2048,"min":1,"max":131072,"step":1,"cat":"generation","desc":"Max tokens"},
+ "context_length":{"type":"int","default":4096,"min":256,"max":1048576,"step":256,"cat":"generation","desc":"Context window"},
+ "seed":{"type":"int","default":-1,"min":-1,"max":999999999,"step":1,"cat":"generation","desc":"Seed (-1=random)"},
+ "stop":{"type":"list","default":[],"cat":"generation","desc":"Stop seqs"},
 }
-CFG={"ollama_host":"http://localhost:11434","llamacpp_host":"http://localhost:8080",
- "engine":"ollama","model":"","system_prompt":"","keep_alive":"5m",
+CFG={"openai_host":"http://10.0.0.113:5000/v1","openai_api_key":"",
+ "engine":"openai","model":"omnibrain-ue","system_prompt":"","keep_alive":"5m",
  "think_enabled":True,"think_visible":False,"show_stats":False,"is_thinking_model":False,
  "chat_template":""}
 PO,MDFL={},{}
+GGUF_META={}  # last-fetched GGUF metadata for the active model
 
 THEMES={
  "ss2":{"--g":"#6688cc","--gd":"#3a4a7a","--gk":"#1e2844","--bg":"#06060e","--bgp":"#0a0e1a","--bgi":"#080912","--bd":"#1a2040","--r":"#cc2233","--c":"#5577bb","--o":"#7799dd","--p":"#8888cc","--mem":"#5599dd","--ri":"#cc2233","--accent":"#4466aa","label":"System Shock 2"},
@@ -88,7 +80,7 @@ THEMES={
 }
 
 CUST_D={"llm_name":"AI","heading_mode":"text","heading_image":"images/heading.png","theme":"ss2",
-    "nav_visible":True,"crt_effect":True,"sound_enabled":False,"pc_speaker":False,"engine":"ollama",
+    "nav_visible":True,"crt_effect":True,"sound_enabled":False,"pc_speaker":False,"engine":"openai",
     "brightness":100,"classic_steam":False}
 def load_cust():
     d=dict(CUST_D)
@@ -100,8 +92,8 @@ def load_cust():
 def save_cust(d):
     with open(CUSTOM_P,"w") as f: json.dump(d,f,indent=2)
 CUST=load_cust()
-# Restore engine from persistent config
-if "engine" in CUST: CFG["engine"]=CUST["engine"]
+# Engine is fixed to openai-compatible — ignore any legacy CUST["engine"]
+CFG["engine"]="openai"
 
 # ══════════════════════════════════════════════════════════════════
 # CHAT SYSTEM — Every chat is a file. Active ID tracked separately.
@@ -208,26 +200,13 @@ def _reescape(s):
     """Re-escape special chars for display: newline → \\n, tab → \\t, etc."""
     return s.replace("\\","\\\\").replace("\n","\\n").replace("\t","\\t").replace("\r","\\r")
 
-def build_ollama_opts():
-    """Build Ollama options dict — only send params explicitly overridden by user (PO) or model defaults (MDFL).
-    Skip hardcoded PD defaults so Ollama uses the model's own Modelfile values,
-    which is critical for custom models created via 'ollama create'."""
+def build_openai_opts():
+    """Build OpenAI-compatible /v1/chat/completions params. Always sends
+    user/model defaults so custom samplers work; context_length is excluded
+    (used only for client-side trimming, not sent to API)."""
     o={}
     for k,p in PD.items():
-        if 'o' not in p.get("eng","o"): continue
-        if k not in PO and k not in MDFL: continue
-        v=eff(k)
-        if k=="stop":
-            if v: o["stop"]=v
-            continue
-        o[k]=v
-    return o
-
-def build_llamacpp_opts():
-    """Build llama.cpp /v1/chat/completions params — only params tagged with 'l' in eng."""
-    o={}
-    for k,p in PD.items():
-        if 'l' not in p.get("eng","o"): continue
+        if k=="context_length": continue
         v=eff(k)
         if k=="stop":
             if v: o["stop"]=v
@@ -235,6 +214,10 @@ def build_llamacpp_opts():
         if k=="max_tokens":
             if v and v>0: o["max_tokens"]=v
             continue
+        # Skip neutral defaults that aren't explicitly set by user or model
+        if k not in PO and k not in MDFL:
+            d=p.get("default")
+            if v==d: continue
         o[k]=v
     return o
 def parse_params(s):
@@ -274,26 +257,77 @@ def process_sys(sp):
     h=now.strftime("%I:%M %p").lower().lstrip('0')
     day=now.day;suf="th" if 11<=day<=13 else {1:"st",2:"nd",3:"rd"}.get(day%10,"th")
     return sp.replace("<|DATE|>",f"{h} {now.strftime('%B')} {day}{suf}, {now.year}")
+def _auth_headers():
+    h={"Content-Type":"application/json"}
+    k=(CFG.get("openai_api_key") or "").strip()
+    if k: h["Authorization"]=f"Bearer {k}"
+    return h
+
 def get_models():
-    try: r=R.get(f"{CFG['ollama_host']}/api/tags",timeout=5);r.raise_for_status();return r.json().get("models",[])
-    except: return []
-def fetch_info(n):
+    """List models from the OpenAI-compatible /v1/models endpoint."""
     try:
-        r=R.post(f"{CFG['ollama_host']}/api/show",json={"name":n,"verbose":True},timeout=15);r.raise_for_status();return r.json()
-    except: return None
-def extract_sys(info):
-    s=info.get("system","")
-    if s: return s.strip()
-    mf=info.get("modelfile","")
-    if mf:
-        m=re.search(r'SYSTEM\s+"""(.*?)"""|SYSTEM\s+"(.*?)"|SYSTEM\s+(.+?)$',mf,re.DOTALL|re.MULTILINE)
-        if m: return (m.group(1) or m.group(2) or m.group(3) or "").strip()
-    return ""
+        r=R.get(f"{CFG['openai_host'].rstrip('/')}/models",headers=_auth_headers(),timeout=5)
+        r.raise_for_status()
+        return r.json().get("data",[])
+    except: return []
+
+def fetch_gguf_meta(name):
+    """Pull GGUF metadata + sampling defaults for a model from the API.
+
+    Tries (in order): text-generation-webui /v1/internal/model/info,
+    llama-server /props, generic /v1/models/<id>. Returns a dict normalised
+    to: {"context_length": int|None, "chat_template": str, "system": str,
+         "details": {...raw...}, "sampling": {...sampling defaults...}}.
+    """
+    base=CFG['openai_host'].rstrip('/')
+    out={"context_length":None,"chat_template":"","system":"","details":{},"sampling":{}}
+    raw=None
+    # text-generation-webui
+    try:
+        r=R.get(f"{base}/internal/model/info",headers=_auth_headers(),timeout=8)
+        if r.status_code==200: raw=r.json();out["details"].update(raw)
+    except: pass
+    # llama-server props (often at the host root, not under /v1)
+    try:
+        root=base[:-3] if base.endswith("/v1") else base
+        r=R.get(f"{root}/props",headers=_auth_headers(),timeout=8)
+        if r.status_code==200:
+            p=r.json();out["details"].update({"props":p})
+            dm=p.get("default_generation_settings") or p.get("generation_settings") or {}
+            for src,dst in (("temperature","temperature"),("top_k","top_k"),("top_p","top_p"),
+                            ("min_p","min_p"),("typical_p","typical_p"),("tfs_z","tfs"),
+                            ("repeat_penalty","repetition_penalty"),("repeat_last_n","repetition_penalty_range"),
+                            ("presence_penalty","presence_penalty"),("frequency_penalty","frequency_penalty"),
+                            ("mirostat","mirostat_mode"),("mirostat_tau","mirostat_tau"),("mirostat_eta","mirostat_eta"),
+                            ("seed","seed")):
+                if src in dm: out["sampling"][dst]=dm[src]
+            if "n_ctx" in p: out["context_length"]=int(p["n_ctx"])
+            if "chat_template" in p: out["chat_template"]=p["chat_template"]
+            if "system_prompt" in p: out["system"]=p["system_prompt"]
+    except: pass
+    # generic /v1/models/<id> — some servers embed gguf metadata here
+    try:
+        r=R.get(f"{base}/models/{name}",headers=_auth_headers(),timeout=8)
+        if r.status_code==200:
+            d=r.json();out["details"].update({"model":d})
+            meta=d.get("meta") or d.get("metadata") or {}
+            for k in meta:
+                if k.endswith(".context_length"):
+                    try: out["context_length"]=int(meta[k])
+                    except: pass
+                if k.endswith("tokenizer.chat_template"):
+                    out["chat_template"]=str(meta[k])
+            # Some servers expose sampling defaults nested under "default_sampler"
+            ds=d.get("default_sampler") or d.get("sampling") or {}
+            for k,v in ds.items():
+                if k in PD: out["sampling"][k]=v
+    except: pass
+    return out
 def get_lan_ip():
     try: s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);s.connect(("8.8.8.8",80));ip=s.getsockname()[0];s.close();return ip
     except: return "127.0.0.1"
 def get_cfg_state():
-    return {"connection":{k:CFG[k] for k in ("ollama_host","llamacpp_host","engine","model","system_prompt","keep_alive","chat_template")},
+    return {"connection":{k:CFG[k] for k in ("openai_host","openai_api_key","engine","model","system_prompt","keep_alive","chat_template")},
         "toggles":{k:CFG[k] for k in ("think_enabled","think_visible","show_stats")},"param_overrides":dict(PO)}
 def apply_cfg_state(st):
     global PO
@@ -305,11 +339,11 @@ def apply_cfg_state(st):
 
 def trim_messages_to_context(msgs, num_ctx, sys_tokens=0):
     """
-    Trim messages from the FRONT to fit within num_ctx.
+    Trim messages from the FRONT to fit within context_length.
     Rough estimate: 1 token ≈ 4 chars. Keeps most recent messages.
     sys_tokens: estimated tokens used by system prompt + memory injection.
     """
-    budget = num_ctx - sys_tokens - 200  # Reserve 200 for response overhead
+    budget = num_ctx - sys_tokens - max(200, eff("max_tokens"))  # reserve room for the response
     if budget <= 0: budget = num_ctx // 2
 
     # Walk backwards, accumulating token estimate
@@ -334,51 +368,51 @@ def serve_img(fn): return send_from_directory(IMAGES,fn)
 
 @app.route("/api/models",methods=["GET"])
 def api_models():
-    eng=CFG.get("engine","ollama")
-    if eng=="llamacpp":
-        # llama.cpp /v1/models endpoint
-        ms=[]
-        try:
-            r=R.get(f"{CFG['llamacpp_host']}/v1/models",timeout=5);r.raise_for_status()
-            for m in r.json().get("data",[]):
-                mid=m.get("id","unknown")
-                ms.append({"name":mid,"size":0,"parameter_size":"","quantization":"","family":"gguf","is_thinking":det_think(mid)})
-        except: pass
-        return jsonify({"models":ms,"current":CFG["model"],"engine":"llamacpp"})
-    else:
-        return jsonify({"models":[{"name":m.get("name",""),"size":m.get("size",0),
-            "parameter_size":m.get("details",{}).get("parameter_size",""),
-            "quantization":m.get("details",{}).get("quantization_level",""),
-            "family":m.get("details",{}).get("family",""),
-            "is_thinking":det_think(m.get("name",""),m.get("details",{}))} for m in get_models()],
-            "current":CFG["model"],"engine":"ollama"})
+    ms=[]
+    for m in get_models():
+        mid=m.get("id","unknown")
+        ms.append({"name":mid,"size":0,
+            "parameter_size":m.get("parameter_size","") or m.get("meta",{}).get("general.parameter_count",""),
+            "quantization":m.get("quantization","") or m.get("meta",{}).get("general.file_type",""),
+            "family":m.get("family","gguf"),"is_thinking":det_think(mid)})
+    return jsonify({"models":ms,"current":CFG["model"],"engine":"openai"})
 
 @app.route("/api/model_info",methods=["POST"])
 def api_model_info():
-    info=fetch_info(request.json.get("model",""))
-    if not info: return jsonify({"error":"Fail"}),400
-    return jsonify({"template":info.get("template",""),"parameters_raw":info.get("parameters",""),
-        "system_prompt":extract_sys(info),"details":info.get("details",{})})
+    n=request.json.get("model","")
+    meta=fetch_gguf_meta(n)
+    return jsonify({"template":meta.get("chat_template",""),
+        "parameters_raw":json.dumps(meta.get("sampling",{}),indent=2) if meta.get("sampling") else "",
+        "system_prompt":meta.get("system",""),"details":meta.get("details",{}),
+        "context_length":meta.get("context_length")})
 
 @app.route("/api/select_model",methods=["POST"])
 def api_select_model():
-    global MDFL
+    global MDFL,GGUF_META
     n=request.json.get("model","");CFG["model"]=n;MDFL={}
-    eng=CFG.get("engine","ollama")
-    if eng=="llamacpp":
-        # llama.cpp: no /api/show equivalent, just set model name
-        CFG["is_thinking_model"]=det_think(n)
-        return jsonify({"status":"ok","model":n,"model_defaults":{},"model_system":"",
-            "template":"","is_thinking_model":CFG["is_thinking_model"],"engine":"llamacpp"})
-    # Ollama
-    info=fetch_info(n)
-    if info:
-        MDFL=parse_params(info.get("parameters",""))
-        CFG["is_thinking_model"]=det_think(n,info.get("details",{}))
-        return jsonify({"status":"ok","model":n,"model_defaults":MDFL,"model_system":extract_sys(info),
-            "template":info.get("template",""),"is_thinking_model":CFG["is_thinking_model"],"engine":"ollama"})
-    CFG["is_thinking_model"]=det_think(n)
-    return jsonify({"status":"ok","model":n,"model_defaults":{},"is_thinking_model":CFG["is_thinking_model"],"engine":"ollama"})
+    meta=fetch_gguf_meta(n);GGUF_META=meta
+    # Lift GGUF sampling defaults into MDFL so the UI shows them as model defaults
+    samp=meta.get("sampling",{})
+    for k,v in samp.items():
+        if k not in PD: continue
+        try:
+            t=PD[k]["type"]
+            if t=="int": MDFL[k]=int(v)
+            elif t=="float": MDFL[k]=float(v)
+            elif t=="bool": MDFL[k]=bool(v)
+            else: MDFL[k]=v
+        except: pass
+    if meta.get("context_length"):
+        try: MDFL["context_length"]=int(meta["context_length"])
+        except: pass
+    if meta.get("chat_template") and not CFG.get("chat_template","").strip():
+        # Don't overwrite a user-edited template — only seed if empty
+        pass
+    CFG["is_thinking_model"]=det_think(n,meta.get("details",{}))
+    return jsonify({"status":"ok","model":n,"model_defaults":MDFL,
+        "model_system":meta.get("system",""),
+        "template":meta.get("chat_template",""),
+        "is_thinking_model":CFG["is_thinking_model"],"engine":"openai"})
 
 @app.route("/api/config",methods=["GET","POST"])
 def api_config():
@@ -392,7 +426,7 @@ def api_config():
         return jsonify({**CFG,"params":e,"sources":s,"model_defaults":MDFL,"param_defs":PD,
             "lan_ip":get_lan_ip(),"port":7865,"hostname":socket.gethostname()})
     data=request.json
-    for k in ("ollama_host","llamacpp_host","engine","model","system_prompt","keep_alive","chat_template"):
+    for k in ("openai_host","openai_api_key","engine","model","system_prompt","keep_alive","chat_template"):
         if k in data: CFG[k]=data[k]
     for k in ("think_enabled","think_visible","show_stats"):
         if k in data: CFG[k]=bool(data[k])
@@ -612,13 +646,11 @@ def api_cust():
     global CUST
     if request.method=="GET": return jsonify({**CUST,"themes":THEMES})
     data=request.json
-    for k in ("llm_name","heading_mode","heading_image","theme","engine"):
+    for k in ("llm_name","heading_mode","heading_image","theme"):
         if k in data: CUST[k]=data[k]
     for k in ("nav_visible","crt_effect","sound_enabled","pc_speaker","classic_steam"):
         if k in data: CUST[k]=bool(data[k])
     if "brightness" in data: CUST["brightness"]=int(data["brightness"])
-    # Persist engine choice to CFG
-    if "engine" in CUST: CFG["engine"]=CUST["engine"]
     save_cust(CUST);return jsonify({"status":"ok"})
 
 # ── Memory ────────────────────────────────────────────────────────
@@ -687,8 +719,8 @@ def api_chat():
     sys_chars=sum(len(m["content"]) for m in sys_parts)
     sys_tokens_est=sys_chars//4+20
 
-    # Context cutoff: trim history to fit within num_ctx
-    num_ctx=eff("num_ctx")
+    # Context cutoff: trim history to fit within context_length
+    num_ctx=eff("context_length")
     history_for_api=[]
     for msg in all_msgs:
         c=msg["content"]
@@ -698,7 +730,6 @@ def api_chat():
     trimmed=trim_messages_to_context(history_for_api, num_ctx, sys_tokens_est)
 
     api_msgs=sys_parts+trimmed
-    eng=CFG.get("engine","ollama")
     think_on=CFG["think_enabled"] and CFG["is_thinking_model"]
 
     def gen():
@@ -706,95 +737,91 @@ def api_chat():
         try:
             yield f"data: {json.dumps({'mem_inject':mem_action_inject,'mem_count':len(retrieved),'ctx_msgs':len(trimmed),'ctx_total':len(all_msgs)})}\n\n"
 
-            fc,ft="","";t0=None;te=False
-
-            if eng=="llamacpp":
-                # ═══ LLAMA.CPP via OpenAI-compatible /v1/chat/completions ═══
-                opts=build_llamacpp_opts()
-                payload={"model":CFG["model"],"messages":api_msgs,"stream":True}
-                payload.update(opts)  # top-level params for llama.cpp
-                headers={"Content-Type":"application/json","Authorization":"Bearer no-key"}
-                r=R.post(f"{CFG['llamacpp_host']}/v1/chat/completions",json=payload,headers=headers,stream=True,timeout=300)
-                if r.status_code!=200:
-                    try: err_body=r.json();err_msg=err_body.get("error",{}).get("message",r.text) if isinstance(err_body.get("error"),dict) else err_body.get("error",r.text)
-                    except: err_msg=r.text or f"HTTP {r.status_code}"
-                    yield f"data: {json.dumps({'error':f'llama.cpp ({r.status_code}): {err_msg}'})}" + "\n\n";return
-                st={}  # stats — populated from timings/usage if available
-                for line in r.iter_lines():
-                    if not line: continue
-                    line=line.decode('utf-8') if isinstance(line,bytes) else line
-                    if not line.startswith("data: "): continue
-                    chunk=line[6:].strip()
-                    if chunk=="[DONE]": break
-                    try:
-                        d=json.loads(chunk)
-                        delta=d.get("choices",[{}])[0].get("delta",{})
-                        ct=delta.get("content","")
-                        fin=d.get("choices",[{}])[0].get("finish_reason")
-                        if ct:
-                            fc+=ct
-                            yield f"data: {json.dumps({'token':ct})}\n\n"
-                        if fin:
-                            timings=d.get("timings",{})
-                            usage=d.get("usage",{})
-                            if timings:
-                                st["eval_count"]=timings.get("predicted_n",0)
-                                if timings.get("predicted_ms"):
-                                    st["eval_duration"]=int(timings["predicted_ms"]*1e6)
-                                if timings.get("prompt_ms"):
-                                    st["prompt_eval_duration"]=int(timings["prompt_ms"]*1e6)
-                                    st["prompt_eval_count"]=timings.get("prompt_n",0)
-                                if timings.get("predicted_ms") and timings.get("prompt_ms"):
-                                    st["total_duration"]=int((timings["predicted_ms"]+timings["prompt_ms"])*1e6)
-                            elif usage:
-                                st["eval_count"]=usage.get("completion_tokens",0)
-                                st["prompt_eval_count"]=usage.get("prompt_tokens",0)
-                    except: pass
-                # Handle think tags in final content (llama.cpp has no native think field)
-                think_match=re.search(r'<think>([\s\S]*?)</think>',fc)
-                if think_match:
-                    ft=think_match.group(1).strip()
-                    fc=fc[:think_match.start()]+fc[think_match.end():]
-                    fc=fc.strip()
-                    if ft: yield f"data: {json.dumps({'think_start':True})}\n\n"
-                    if ft: yield f"data: {json.dumps({'think_end':True,'think_duration':0})}\n\n"
-                _append_to_active({"role":"assistant","content":fc,"thinking":ft})
-                yield f"data: {json.dumps({'done':True,'stats':st,'version':_chat_version})}\n\n"
-                if (ltm.config["enable_saving"] or ltm.config.get("dumb_mode")) and fc:
-                    ltm.evaluate_and_store(user_msg, fc)
-                    yield f"data: {json.dumps({'mem_save':ltm.last_action,'mem_interest':ltm.last_interest})}\n\n"
-
-            else:
-                # ═══ OLLAMA via /api/chat ═══
-                options=build_ollama_opts()
-                payload={"model":CFG["model"],"messages":api_msgs,"stream":True,"options":options}
-                if CFG["is_thinking_model"]: payload["think"]=think_on
-                if CFG.get("keep_alive"): payload["keep_alive"]=CFG["keep_alive"]
-                if CFG.get("chat_template","").strip(): payload["template"]=CFG["chat_template"]
-                r=R.post(f"{CFG['ollama_host']}/api/chat",json=payload,stream=True,timeout=300)
-                if r.status_code!=200:
-                    try: err_body=r.json();err_msg=err_body.get("error",r.text)
-                    except: err_msg=r.text or f"HTTP {r.status_code}"
-                    yield f"data: {json.dumps({'error':f'Ollama ({r.status_code}): {err_msg}'})}" + "\n\n";return
-                for line in r.iter_lines():
-                    if not line: continue
-                    ch=json.loads(line);msg=ch.get("message",{});tk,ct=msg.get("thinking",""),msg.get("content","")
-                    if tk:
-                        if not t0: t0=time.time();yield f"data: {json.dumps({'think_start':True})}\n\n"
-                        ft+=tk;yield f"data: {json.dumps({'thinking':tk,'think_len':len(ft)})}\n\n"
+            fc,ft="","";gen_started=time.time();in_think=False;think_t0=None
+            opts=build_openai_opts()
+            payload={"model":CFG["model"],"messages":api_msgs,"stream":True}
+            payload.update(opts)
+            if CFG.get("chat_template","").strip(): payload["chat_template"]=CFG["chat_template"]
+            r=R.post(f"{CFG['openai_host'].rstrip('/')}/chat/completions",
+                     json=payload,headers=_auth_headers(),stream=True,timeout=300)
+            if r.status_code!=200:
+                try:
+                    err_body=r.json();e=err_body.get("error")
+                    err_msg=e.get("message") if isinstance(e,dict) else (e or err_body.get("detail") or r.text)
+                except: err_msg=r.text or f"HTTP {r.status_code}"
+                yield f"data: {json.dumps({'error':f'OpenAI ({r.status_code}): {err_msg}'})}" + "\n\n";return
+            st={}
+            buffer=""  # for splicing across <think> tag boundaries
+            for line in r.iter_lines():
+                if not line: continue
+                line=line.decode('utf-8') if isinstance(line,bytes) else line
+                if not line.startswith("data: "): continue
+                chunk=line[6:].strip()
+                if chunk=="[DONE]": break
+                try:
+                    d=json.loads(chunk)
+                    choice=d.get("choices",[{}])[0]
+                    delta=choice.get("delta",{})
+                    ct=delta.get("content","") or ""
+                    rt=delta.get("reasoning_content","") or delta.get("reasoning","") or ""
+                    fin=choice.get("finish_reason")
+                    if rt:
+                        if not think_t0:
+                            think_t0=time.time();in_think=True
+                            yield f"data: {json.dumps({'think_start':True})}\n\n"
+                        ft+=rt
+                        yield f"data: {json.dumps({'thinking':rt,'think_len':len(ft)})}\n\n"
                     if ct:
-                        if t0 and not te: te=True;yield f"data: {json.dumps({'think_end':True,'think_duration':round(time.time()-t0,1)})}\n\n"
-                        fc+=ct;yield f"data: {json.dumps({'token':ct})}\n\n"
-                    if ch.get("done"):
-                        if t0 and not te: yield f"data: {json.dumps({'think_end':True,'think_duration':round(time.time()-t0,1)})}\n\n"
-                        st={k:ch[k] for k in ("total_duration","load_duration","eval_count","eval_duration","prompt_eval_count","prompt_eval_duration") if k in ch}
-                        _append_to_active({"role":"assistant","content":fc,"thinking":ft})
-                        yield f"data: {json.dumps({'done':True,'stats':st,'version':_chat_version})}\n\n"
-                        if (ltm.config["enable_saving"] or ltm.config.get("dumb_mode")) and fc:
-                            ltm.evaluate_and_store(user_msg, fc)
-                            yield f"data: {json.dumps({'mem_save':ltm.last_action,'mem_interest':ltm.last_interest})}\n\n"
+                        # Inline <think>...</think> stripping for servers that don't split reasoning
+                        buffer+=ct
+                        out=""
+                        while buffer:
+                            if in_think:
+                                idx=buffer.find("</think>")
+                                if idx==-1:
+                                    ft+=buffer;yield f"data: {json.dumps({'thinking':buffer,'think_len':len(ft)})}\n\n";buffer="";break
+                                ft+=buffer[:idx];buffer=buffer[idx+len("</think>"):]
+                                in_think=False
+                                td=round(time.time()-(think_t0 or time.time()),1)
+                                yield f"data: {json.dumps({'think_end':True,'think_duration':td})}\n\n"
+                            else:
+                                idx=buffer.find("<think>")
+                                if idx==-1:
+                                    out+=buffer;buffer="";break
+                                out+=buffer[:idx];buffer=buffer[idx+len("<think>"):]
+                                in_think=True;think_t0=time.time()
+                                yield f"data: {json.dumps({'think_start':True})}\n\n"
+                        if out:
+                            fc+=out
+                            yield f"data: {json.dumps({'token':out})}\n\n"
+                    if fin:
+                        if in_think:
+                            td=round(time.time()-(think_t0 or time.time()),1)
+                            in_think=False
+                            yield f"data: {json.dumps({'think_end':True,'think_duration':td})}\n\n"
+                        timings=d.get("timings",{});usage=d.get("usage",{})
+                        if timings:
+                            st["eval_count"]=timings.get("predicted_n",0)
+                            if timings.get("predicted_ms"): st["eval_duration"]=int(timings["predicted_ms"]*1e6)
+                            if timings.get("prompt_ms"):
+                                st["prompt_eval_duration"]=int(timings["prompt_ms"]*1e6)
+                                st["prompt_eval_count"]=timings.get("prompt_n",0)
+                            if timings.get("predicted_ms") and timings.get("prompt_ms"):
+                                st["total_duration"]=int((timings["predicted_ms"]+timings["prompt_ms"])*1e6)
+                        elif usage:
+                            st["eval_count"]=usage.get("completion_tokens",0)
+                            st["prompt_eval_count"]=usage.get("prompt_tokens",0)
+                            st["total_duration"]=int((time.time()-gen_started)*1e9)
+                            if st["eval_count"]:
+                                st["eval_duration"]=int((time.time()-gen_started)*1e9)
+                except: pass
+            _append_to_active({"role":"assistant","content":fc,"thinking":ft})
+            yield f"data: {json.dumps({'done':True,'stats':st,'version':_chat_version})}\n\n"
+            if (ltm.config["enable_saving"] or ltm.config.get("dumb_mode")) and fc:
+                ltm.evaluate_and_store(user_msg, fc)
+                yield f"data: {json.dumps({'mem_save':ltm.last_action,'mem_interest':ltm.last_interest})}\n\n"
         except R.exceptions.ConnectionError:
-            yield f"data: {json.dumps({'error':'Cannot connect to '+eng})}\n\n"
+            yield f"data: {json.dumps({'error':'Cannot connect to '+CFG.get('openai_host','')})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error':str(e)})}\n\n"
     return Response(stream_with_context(gen()),mimetype="text/event-stream")
@@ -858,15 +885,13 @@ def api_speech_voices():
 
 @app.route("/api/health",methods=["GET"])
 def api_health():
-    eng=CFG.get("engine","ollama")
     try:
-        if eng=="llamacpp":
-            r=R.get(f"{CFG['llamacpp_host']}/health",timeout=3)
-            return jsonify({"ollama":"connected","engine":"llamacpp"})
-        else:
-            R.get(f"{CFG['ollama_host']}/",timeout=3)
-            return jsonify({"ollama":"connected","engine":"ollama"})
-    except: return jsonify({"ollama":"disconnected","engine":eng}),503
+        # Probe /v1/models — universal OpenAI-compatible health check
+        r=R.get(f"{CFG['openai_host'].rstrip('/')}/models",headers=_auth_headers(),timeout=3)
+        if r.status_code<500:
+            return jsonify({"ollama":"connected","engine":"openai"})
+        return jsonify({"ollama":"disconnected","engine":"openai"}),503
+    except: return jsonify({"ollama":"disconnected","engine":"openai"}),503
 
 if __name__=="__main__":
     port=7865;lan=get_lan_ip()
